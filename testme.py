@@ -2,7 +2,7 @@ import galsim
 import numpy as np
 import deblend
 
-bd=galsim.BaseDeviate(1)
+bd=galsim.BaseDeviate(0)
 
 def create_blend(peak1, peak2):
     gal1 = galsim.Gaussian(fwhm=1.2, flux=2000.0).shift(peak1).shear(e1=0.1, e2=0.3)
@@ -35,27 +35,32 @@ if __name__ == '__main__':
     print children[0].sum() + children[1].sum()
 
     fig = plt.figure()
-    ax1 = fig.add_subplot(4,3,1)
-    ax2 = fig.add_subplot(4,3,2)
-    ax3 = fig.add_subplot(4,3,3)
+    ax1 = fig.add_subplot(5,3,1)
+    ax2 = fig.add_subplot(5,3,2)
+    ax3 = fig.add_subplot(5,3,3)
     ax1.imshow(blend.array, vmin=0, vmax=50)
     ax2.imshow(unblends[0].array, vmin=0, vmax=50)
     ax3.imshow(unblends[1].array, vmin=0, vmax=50)
 
-    ax5 = fig.add_subplot(4,3,5)
-    ax6 = fig.add_subplot(4,3,6)
+    ax5 = fig.add_subplot(5,3,5)
+    ax6 = fig.add_subplot(5,3,6)
     ax5.imshow(templates[0], vmin=0, vmax=50)
     ax6.imshow(templates[1], vmin=0, vmax=50)
 
-    ax8 = fig.add_subplot(4,3,8)
-    ax9 = fig.add_subplot(4,3,9)
+    ax8 = fig.add_subplot(5,3,8)
+    ax9 = fig.add_subplot(5,3,9)
     ax8.imshow(template_fractions[0], vmin=0, vmax=1)
     ax9.imshow(template_fractions[1], vmin=0, vmax=1)
 
-    ax11 = fig.add_subplot(4,3,11)
-    ax12 = fig.add_subplot(4,3,12)
+    ax11 = fig.add_subplot(5,3,11)
+    ax12 = fig.add_subplot(5,3,12)
     ax11.imshow(children[0], vmin=0, vmax=50)
     ax12.imshow(children[1], vmin=0, vmax=50)
+
+    ax14 = fig.add_subplot(5,3,14)
+    ax15 = fig.add_subplot(5,3,15)
+    ax14.imshow(unblends[0].array - children[0], vmin=-25, vmax=25)
+    ax15.imshow(unblends[1].array - children[1], vmin=-25, vmax=25)
 
 
     plt.show()
