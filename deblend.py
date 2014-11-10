@@ -27,7 +27,7 @@ def deblend(image, peaks):
 def rotate(image, peak):
     # Assume that origin is in the geometric center of the image (so at the corner of 4 pixels if
     # even-sized image, or at the center of a single pixel if odd-sized image).
-    image_width, image_height = image.shape
+    image_height, image_width = image.shape
     # This center is 0-indexed and measured from the lower-left corner of the lower-left pixel.
     image_center = (image_width * 0.5, image_height * 0.5)
     rot_pix_center = (image_center[0] + peak[0],
