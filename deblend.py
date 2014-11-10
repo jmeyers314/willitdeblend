@@ -48,42 +48,99 @@ def rotate(image, peak):
     newimage[ymin:ymax, xmin:xmax] = (image[ymin:ymax, xmin:xmax])[::-1,::-1]
     return newimage
 
+def test_rotate():
+    # test odd-size array
+    array = np.array([[0,  0,  0,   0,  0],
+                      [0, 11, 12,   0,  0],
+                      [0,  0, 22,   0,  0],
+                      [0,  0,  0,  33,  0],
+                      [0,  0,  0,   0, 44]])
+
+    rot = rotate(array, (1,1)) # rotating about the 33 value pixel
+    np.testing.assert_array_almost_equal(rot, np.array([[0,  0,  0,   0,  0],
+                                                        [0,  0,  0,   0,  0],
+                                                        [0,  0, 44,   0,  0],
+                                                        [0,  0,  0,  33,  0],
+                                                        [0,  0,  0,   0, 22]]),
+                                         5, err_msg="incorrect rotate")
+
+    rot = rotate(array, (-1,-1)) # rotating about the 11 value pixel
+    np.testing.assert_array_almost_equal(rot, np.array([[22,  0,  0,   0,  0],
+                                                        [12, 11,  0,   0,  0],
+                                                        [ 0,  0,  0,   0,  0],
+                                                        [ 0,  0,  0,   0,  0],
+                                                        [ 0,  0,  0,   0,  0]]),
+                                         5, err_msg="incorrect rotate")
+
+    rot = rotate(array, (0.5,0.5)) # rotating about point between 22 and 33
+    np.testing.assert_array_almost_equal(rot, np.array([[ 0,  0,  0,   0,  0],
+                                                        [ 0, 44,  0,   0,  0],
+                                                        [ 0,  0, 33,   0,  0],
+                                                        [ 0,  0,  0,  22,  0],
+                                                        [ 0,  0,  0,  12, 11]]),
+                                         5, err_msg="incorrect rotate")
+
+    # test even-size array
+    array = np.array([[0,  0,  0,   0],
+                      [0, 11, 12,   0],
+                      [0,  0, 22,   0],
+                      [0,  0,  0,  33]])
+
+    rot = rotate(array, (0.5,0.5)) # rotating about the 22 value pixel
+    np.testing.assert_array_almost_equal(rot, np.array([[ 0,  0,  0,   0],
+                                                        [ 0, 33,  0,   0],
+                                                        [ 0,  0, 22,   0],
+                                                        [ 0,  0, 12,  11]]),
+                                         5, err_msg="incorrect rotate")
+
+    rot = rotate(array, (0.0,0.0)) # rotating about point between 11 and 22
+    np.testing.assert_array_almost_equal(rot, np.array([[33,  0,  0,   0],
+                                                        [ 0, 22,  0,   0],
+                                                        [ 0, 12, 11,   0],
+                                                        [ 0,  0,  0,   0]]),
+                                         5, err_msg="incorrect rotate")
+
+    # test non-square array
+    array = np.array([[0,  0,  0,   0],
+                      [0, 11, 12,   0],
+                      [0,  0, 22,   0],
+                      [0,  0,  0,  33],
+                      [0,  0,  0,  43]])
+
+    rot = rotate(array, (0.0,0.0)) # rotating about point 1/2 unit left of 22
+    np.testing.assert_array_almost_equal(rot, np.array([[43,  0,  0,   0],
+                                                        [33,  0,  0,   0],
+                                                        [ 0, 22,  0,   0],
+                                                        [ 0, 12, 11,   0],
+                                                        [ 0,  0,  0,   0]]),
+                                         5, err_msg="incorrect rotate")
+
+    rot = rotate(array, (0.5,0.5)) # rotating about point 1/2 unint below 22
+    np.testing.assert_array_almost_equal(rot, np.array([[ 0,  0,  0,   0],
+                                                        [ 0, 43,  0,   0],
+                                                        [ 0, 33,  0,   0],
+                                                        [ 0,  0, 22,   0],
+                                                        [ 0,  0, 12,  11]]),
+                                         5, err_msg="incorrect rotate")
+
+def test_deblend():
+    try:
+        import galsim
+    except:
+        print "cant test deblend w/o galsim"
+
+    # check that children of symmetric image show same symmetry
+    img = galsim.ImageD(32, 24)
+    gal1 = galsim.Gaussian(fwhm=5).shift(-5,0)
+    gal2 = galsim.Gaussian(fwhm=5).shift(+5,0)
+    gals = gal1 + gal2
+    gals.drawImage(image=img)
+    templates, template_fractions, children = deblend(img.array, [(-3, 0), (3, 0)])
+    xflip = children[1][:,::-1]
+    symdiff = (children[0] - xflip)/img.array
+    np.testing.assert_array_almost_equal(children[0], xflip, 10,
+                                         "deblend symmetry failed")
 
 if __name__ == '__main__':
-    # test rotater
-    array = np.zeros((5,5),dtype=np.float)
-    array[1,1]=11
-    array[1,2]=12
-    array[2,2]=22
-    array[3,3]=33
-    array[4,4]=44
-    rot = rotate(array, (1,1))
-    print "array"
-    print array
-    print "rotated about (1,1) wrt center"
-    print rot
-    print
-    rot = rotate(array, (-1,-1))
-    print "array"
-    print array
-    print "rotated about (-1,-1)) wrt center"
-    print rot
-    print
-    rot = rotate(array, (0.5,0.5))
-    print "array"
-    print array
-    print "rotated about (0.5,0.5)) wrt center"
-    print rot
-    array = array[0:4,0:4]
-    print
-    rot = rotate(array, (0.5,0.5))
-    print "array"
-    print array
-    print "rotated about (0.5,0.5)) wrt center"
-    print rot
-    print
-    rot = rotate(array, (0.0,0.0))
-    print "array"
-    print array
-    print "rotated about (0,0)) wrt center"
-    print rot
+    test_rotate()
+    test_deblend()
