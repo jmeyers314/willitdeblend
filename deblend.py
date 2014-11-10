@@ -141,6 +141,21 @@ def test_deblend():
     np.testing.assert_array_almost_equal(children[0], xflip, 10,
                                          "deblend symmetry failed")
 
+    # now check that children of transposed image are simliarly transposed
+    # use some noise this time.
+    gals.drawImage(image=img, method='phot', n_photons=10000)
+    _, _, children = deblend(img.array, [(-3, 0), (3, 0)])
+    transimage = img.array.transpose()
+    _, _, transchildren = deblend(transimage, [(0, -3), (0, 3)])
+    np.testing.assert_array_almost_equal(children[0],
+                                         transchildren[0].transpose(),
+                                         10,
+                                         "transposed child of transposed image not equal to child")
+    np.testing.assert_array_almost_equal(children[1],
+                                         transchildren[1].transpose(),
+                                         10,
+                                         "transposed child of transposed image not equal to child")
+
 if __name__ == '__main__':
     test_rotate()
     test_deblend()
