@@ -25,16 +25,24 @@ def deblend(image, peaks):
     return templates, template_fractions, children
 
 def rotate(image, peak):
+    # Round peak to nearest half-integer
+    peak = [0.5*np.rint(2*p) for p in peak]
+
     # Assume that origin is in the geometric center of the image (so at the corner of 4 pixels if
     # even-sized image, or at the center of a single pixel if odd-sized image).
     image_height, image_width = image.shape
+
     # This center is 0-indexed and measured from the lower-left corner of the lower-left pixel.
     image_center = (image_width * 0.5, image_height * 0.5)
     rot_pix_center = (image_center[0] + peak[0],
                       image_center[1] + peak[1])
+
+    # compute boundary of rotate region
     rot_width = 2.0*min(rot_pix_center[0], image_width-rot_pix_center[0])
     rot_height = 2.0*min(rot_pix_center[1], image_height-rot_pix_center[1])
     rot_bounds = [0,image_width,0,image_height] # xmin, xmax, ymin, ymax
+
+    # handle edges falling outside original postage stamp
     if rot_pix_center[0] <= image_center[0]:
         rot_bounds[1] = rot_pix_center[0] + rot_width/2
     else:
@@ -44,6 +52,8 @@ def rotate(image, peak):
     else:
         rot_bounds[2] = rot_pix_center[1] - rot_height/2
     xmin, xmax, ymin, ymax = rot_bounds
+
+    # and finally, rotate!
     newimage = np.zeros_like(image)
     newimage[ymin:ymax, xmin:xmax] = (image[ymin:ymax, xmin:xmax])[::-1,::-1]
     return newimage
@@ -135,7 +145,19 @@ def test_deblend():
     gal2 = galsim.Gaussian(fwhm=5).shift(+5,0)
     gals = gal1 + gal2
     gals.drawImage(image=img)
-    templates, template_fractions, children = deblend(img.array, [(-3, 0), (3, 0)])
+    templates, template_fractions, children = deblend(img.array, [(-5, 0), (5, 0)])
+    xflip = children[1][:,::-1]
+    symdiff = (children[0] - xflip)/img.array
+    np.testing.assert_array_almost_equal(children[0], xflip, 10,
+                                         "deblend symmetry failed")
+
+    # check again for non-integer shift
+    img = galsim.ImageD(32, 24)
+    gal1 = galsim.Gaussian(fwhm=5).shift(-5.2,0)
+    gal2 = galsim.Gaussian(fwhm=5).shift(+5.2,0)
+    gals = gal1 + gal2
+    gals.drawImage(image=img, scale=1)
+    templates, template_fractions, children = deblend(img.array, [(-5.2, 0), (5.2, 0)])
     xflip = children[1][:,::-1]
     symdiff = (children[0] - xflip)/img.array
     np.testing.assert_array_almost_equal(children[0], xflip, 10,
