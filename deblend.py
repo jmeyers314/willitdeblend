@@ -5,12 +5,14 @@
 
 import numpy as np
 
-def deblend(image, peaks):
+def deblend(image, peaks, interpolate=False, force_interpolate=False):
     work_image = image+1.e-20
     templates = []
     # Step 1: Make symmetric templates
     for peak in peaks:
-        templates.append(np.fmin(work_image, rotate(work_image, peak)))
+        templates.append(np.fmin(work_image, rotate(work_image, peak,
+                                                    interpolate=interpolate,
+                                                    force_interpolate=force_interpolate)))
     # Step 2: Calculate relative contribution of each template
     template_sum = reduce(lambda x,y: x+y, templates, 0)
     template_fractions = []
@@ -24,18 +26,29 @@ def deblend(image, peaks):
         children.append(template_fraction * image)
     return templates, template_fractions, children
 
-def rotate(image, peak):
-    # Round peak to nearest half-integer
-    peak = [0.5*np.rint(2*p) for p in peak]
-
+def rotate(image, peak, interpolate=False, force_interpolate=False):
     # Assume that origin is in the geometric center of the image (so at the corner of 4 pixels if
     # even-sized image, or at the center of a single pixel if odd-sized image).
     image_height, image_width = image.shape
 
+    # Round peak to nearest half-integer
+    rpeak = [0.5*np.rint(2*p) for p in peak]
+
+    if force_interpolate or (interpolate and rpeak != peak):
+        try:
+            import galsim
+        except:
+            print "cant interpolate w/o galsim"
+        imobj = (galsim.InterpolatedImage(galsim.ImageD(image, scale=1))
+                 .shift(-peak[0], -peak[1])
+                 .rotate(180*galsim.degrees)
+                 .shift(peak[0], peak[1]))
+        return imobj.drawImage(nx=image_width, ny=image_height, scale=1).array
+
     # This center is 0-indexed and measured from the lower-left corner of the lower-left pixel.
     image_center = (image_width * 0.5, image_height * 0.5)
-    rot_pix_center = (image_center[0] + peak[0],
-                      image_center[1] + peak[1])
+    rot_pix_center = (image_center[0] + rpeak[0],
+                      image_center[1] + rpeak[1])
 
     # compute boundary of rotate region
     rot_width = 2.0*min(rot_pix_center[0], image_width-rot_pix_center[0])
