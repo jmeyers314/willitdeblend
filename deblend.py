@@ -43,7 +43,7 @@ def rotate(image, peak, interpolate=False, force_interpolate=False):
                  .shift(-peak[0], -peak[1])
                  .rotate(180*galsim.degrees)
                  .shift(peak[0], peak[1]))
-        return imobj.drawImage(nx=image_width, ny=image_height, scale=1).array
+        return imobj.drawImage(nx=image_width, ny=image_height, scale=1, method='no_pixel').array
 
     # This center is 0-indexed and measured from the lower-left corner of the lower-left pixel.
     image_center = (image_width * 0.5, image_height * 0.5)
@@ -190,6 +190,18 @@ def test_deblend():
                                          transchildren[1].transpose(),
                                          10,
                                          "transposed child of transposed image not equal to child")
+
+    # compare array operations rotation to Galsim.rotate
+    _, _, children2 = deblend(img.array, [(-3, 0), (3, 0)],
+                              interpolate=True, force_interpolate=True)
+    np.testing.assert_array_almost_equal(children[0],
+                                         children2[0],
+                                         9,
+                                         "array rotate disagrees with galsim.rotate")
+    np.testing.assert_array_almost_equal(children[1],
+                                         children2[1],
+                                         9,
+                                         "array rotate disagrees with galsim.rotate")
 
 if __name__ == '__main__':
     test_rotate()
