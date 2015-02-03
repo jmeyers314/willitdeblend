@@ -1,4 +1,4 @@
 willitdeblend
 =============
 
-A quick and dirty deblender
+A quick and dirty deblender.
