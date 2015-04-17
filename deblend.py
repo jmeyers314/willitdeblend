@@ -66,7 +66,9 @@ def rotate(image, rot_center, interpolate=False, force_interpolate=False):
             import galsim
         except:
             raise ImportError("can't interpolate w/o galsim")
-        imobj = (galsim.InterpolatedImage(galsim.ImageD(image, scale=1))
+        imobj = (galsim.InterpolatedImage(galsim.ImageD(image, scale=1),
+                                          calculate_stepk=False,
+                                          calculate_maxk=False)
                  .shift(-rot_center[0], -rot_center[1])
                  .rotate(180*galsim.degrees)
                  .shift(rot_center[0], rot_center[1]))
@@ -175,13 +177,12 @@ def test_rotate():
 
     # test that GalSim rotation agrees with numpy rotation when the rotation axis is a
     # half-integer.
-    # This test currently fails!!!
-    # for center in [(0.0, 0.0), (0.5, 0.5), (0.5, -0.5)]:
-    #     numpy_rot = rotate(array, center)
-    #     galsim_rot = rotate(array, center, force_interpolate=True)
-    #     np.testing.assert_array_almost_equal(
-    #         numpy_rot, galsim_rot, 5,
-    #         err_msg="numpy rotation disagrees with galsim rotation at {}".format(center))
+    for center in [(0.0, 0.0), (0.5, 0.5), (0.5, -0.5)]:
+        numpy_rot = rotate(array, center)
+        galsim_rot = rotate(array, center, force_interpolate=True)
+        np.testing.assert_array_almost_equal(
+            numpy_rot, galsim_rot, 5,
+            err_msg="numpy rotation disagrees with galsim rotation at {}".format(center))
 
 def test_deblend():
     try:
