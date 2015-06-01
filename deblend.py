@@ -96,7 +96,7 @@ def rotate(image, rot_center, interpolate=False, force_interpolate=False):
     xmin, xmax, ymin, ymax = rot_bounds
 
     # and finally, rotate!
-    newimage = np.zeros_like(image)
+    newimage = np.ones_like(image)*1.e-20
     newimage[ymin:ymax, xmin:xmax] = (image[ymin:ymax, xmin:xmax])[::-1,::-1]
     return newimage
 
