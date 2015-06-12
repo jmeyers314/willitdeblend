@@ -12,15 +12,14 @@ def deblend(image, peaks, interpolate=False, force_interpolate=False):
     @param image        A numpy array representing an image of a blend.
     @param peaks        A list of tuples representing the peak positions of objects in the blend.
     @param interpolate  If at least one component of rot_center is not a half-integer, use GalSim
-                        to rotate the image.  This currently doesn't work very well!!!
+                        to rotate the image.  
     @param force_interpolate   Use GalSim to rotate the image, even if rot_center components are
                                half-integer and rotation via numpy array operations is possible.
-                               This currently doesn't work very well!!!
-    
+
     @returns templates, template_fractions, children
     
     """
-    work_image = image+1.e-20
+    work_image = image+1.e-20 # avoid zeros which lead to NaNs
 
     # Step 1: Make symmetric templates
     templates = [np.fmin(work_image, rotate(work_image, peak,
@@ -49,10 +48,9 @@ def rotate(image, rot_center, interpolate=False, force_interpolate=False):
                         image is even-sized, or at the center of a single pixel if the image is
                         odd-sized image.
     @param interpolate  If at least one component of rot_center is not a half-integer, use GalSim
-                        to rotate the image.  This currently doesn't work very well!!!
+                        to rotate the image.
     @param force_interpolate   Use GalSim to rotate the image, even if rot_center components are
                                half-integer and rotation via numpy array operations is possible.
-                               This currently doesn't work very well!!!
 
     @returns   Rotated image.
     """
